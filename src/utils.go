@@ -221,7 +221,13 @@ func getLayersOfImage(imageHash string) (layers []string) {
 	mani := readManifest(manifestPath)
 	imagePath := getPathOfImage(imageHash)
 	for _, layer := range mani[0].Layers {
-		layers = append(layers, imagePath + "/" + layer[:12] + "/fs")
+		// must append like this, because upper(new) layers must override lower(low) layers
+		layers = append([]string{imagePath + "/" + layer[:12] + "/fs"}, layers...)
+		/*
+		if use append like:
+		layers = append(layers, imagePath + "/" + layer[:12] + "/fs"),
+		the old layers will cover the new layers.
+		*/
 	}
 	return 
 }
