@@ -11,13 +11,11 @@ import (
 	"path/filepath"
 )
 
-// const dockerHomePath = "/var/lib/gocker"
+
 const dockerHomePath = "/tmp/miniDocker"
 const dockerTarPath = dockerHomePath + "/tar"
 const dockerImagesPath = dockerHomePath + "/images"
 const dockerContainersPath = dockerHomePath + "/containers"
-
-// const dockerNetNsPath 		= "/var/run/docker/net-ns"
 
 func must_ok(err error) {
 	if err != nil {

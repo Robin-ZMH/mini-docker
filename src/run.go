@@ -21,6 +21,14 @@ func Run(args ...string) {
 	log.Println("successfully mount Overlay-File-systems")
 
 	log.Printf("Container start...")
+	/* because go can't:
+	1. sethostname of child process 
+	2. chroot of of child process
+	3. change the directory of child process 
+	so, we can fork a child process to re-execute the program's exe, 
+	in the child process, we implement the above things 
+	and then fork a process to execute the container command.
+	*/
 	must_ok(executeChildCMD(imageHash, containerID, cmdArgs...))
 	
 

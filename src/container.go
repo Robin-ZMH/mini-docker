@@ -43,6 +43,9 @@ func executeChildCMD(imageHash, containerID string, args ...string) error {
 	return cmd.Run()
 }
 
+/* 
+executeContainer will finally execute the container start command after some initialazition
+*/
 func executeContainer(imageHash, containerID string, args ...string){
 	conf := readContainerConfig(imageHash)
 	mnt := getMountPathOfContainer(containerID)
@@ -59,19 +62,12 @@ func executeContainer(imageHash, containerID string, args ...string){
 	syscall.Sethostname([]byte(containerID))
 	syscall.Chroot(mnt)
 	syscall.Chdir("/")
-	createDirs([]string{"/proc", "/sys"})
+	must_ok(createDirs([]string{"/proc", "/sys"}))
 	must_ok(syscall.Mount("proc", "/proc", "proc", 0, ""))
-	must_ok(syscall.Mount("tmpfs", "/tmp", "tmpfs", 0, ""))
-	must_ok(syscall.Mount("tmpfs", "/dev", "tmpfs", 0, ""))
-	createDirs([]string{"/dev/pts"})
-	must_ok(syscall.Mount("devpts", "/dev/pts", "devpts", 0, ""))
 	must_ok(syscall.Mount("sysfs", "/sys", "sysfs", 0, ""))
 
 	cmd.Run()
 
-	must_ok(syscall.Unmount("/dev/pts", 0))
-	must_ok(syscall.Unmount("/dev", 0))
 	must_ok(syscall.Unmount("/sys", 0))
 	must_ok(syscall.Unmount("/proc", 0))
-	must_ok(syscall.Unmount("/tmp", 0))
 }
