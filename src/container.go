@@ -1,6 +1,7 @@
 package src
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -16,7 +17,11 @@ func createContainerDirectories(containerID string) error {
 func mountOverlayFileSystem(containerID, imageHash string) error {
 	layers := getLayersOfImage(imageHash)
 	containerFS := getFSHomeOfContainer(containerID)
-	mntOptions := "lowerdir=" + strings.Join(layers, ":") + ",upperdir=" + containerFS + "/upperdir,workdir=" + containerFS + "/workdir"
+	// mntOptions := "lowerdir=" + strings.Join(layers, ":") + ",upperdir=" + containerFS + "/upperdir,workdir=" + containerFS + "/workdir"
+	mntOptions := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s",
+		strings.Join(layers, ":"),
+		containerFS+"/upperdir",
+		containerFS+"/workdir")
 	return syscall.Mount("none", getMountPathOfContainer(containerID), "overlay", 0, mntOptions)
 }
 
@@ -43,22 +48,22 @@ func executeChildCMD(imageHash, containerID string, args ...string) error {
 	return cmd.Run()
 }
 
-/* 
+/*
 executeContainer will finally execute the container start command after some initialazition
 */
-func executeContainer(imageHash, containerID string, args ...string){
+func executeContainer(imageHash, containerID string, args ...string) {
 	conf := readContainerConfig(imageHash)
 	mnt := getMountPathOfContainer(containerID)
 
 	cmd := exec.Cmd{
-		Path: args[0],
-		Args: args[1:],
+		Path:   args[0],
+		Args:   args[1:],
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Env: conf.Config.Env,
+		Env:    conf.Config.Env,
 	}
-	
+
 	syscall.Sethostname([]byte(containerID))
 	syscall.Chroot(mnt)
 	syscall.Chdir("/")

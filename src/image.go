@@ -2,10 +2,10 @@ package src
 
 import (
 	"encoding/json"
+	"github.com/google/go-containerregistry/pkg/crane"
 	"log"
 	"os"
 	"strings"
-	"github.com/google/go-containerregistry/pkg/crane"
 )
 
 type tagToShaHex map[string]string

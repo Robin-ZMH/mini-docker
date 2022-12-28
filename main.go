@@ -1,12 +1,12 @@
 package main
 
 import (
+	"docker-mini/src"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"time"
-	"docker-mini/src"
 )
 
 func main() {

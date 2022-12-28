@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 )
 
-
 const dockerHomePath = "/tmp/miniDocker"
 const dockerTarPath = dockerHomePath + "/tar"
 const dockerImagesPath = dockerHomePath + "/images"
@@ -19,8 +18,7 @@ const dockerContainersPath = dockerHomePath + "/containers"
 
 func must_ok(err error) {
 	if err != nil {
-		log.Fatalln(err)
-		os.Exit(1)
+		panic(err)
 	}
 }
 
@@ -164,7 +162,7 @@ func readManifest(manifestPath string) (mani manifest) {
 		log.Fatalf("Could not handle %s.\n", manifestPath)
 	}
 
-	return 
+	return
 }
 
 func readContainerConfig(imageHash string) (imgconf imageConfig) {
@@ -173,7 +171,7 @@ func readContainerConfig(imageHash string) (imgconf imageConfig) {
 	if err != nil {
 		log.Fatalln("Could not read image config file")
 	}
-	
+
 	must_ok(json.Unmarshal(data, &imgconf))
 	return
 }
@@ -222,10 +220,10 @@ func getLayersOfImage(imageHash string) (layers []string) {
 		// must append like this, because upper(new) layers must override lower(low) layers
 		layers = append([]string{imagePath + "/" + layer[:12] + "/fs"}, layers...)
 		/*
-		if use append like:
-		layers = append(layers, imagePath + "/" + layer[:12] + "/fs"),
-		the old layers will cover the new layers.
+			if use append like:
+			layers = append(layers, imagePath + "/" + layer[:12] + "/fs"),
+			the old layers will cover the new layers.
 		*/
 	}
-	return 
+	return
 }
