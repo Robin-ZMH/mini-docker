@@ -3,6 +3,8 @@ package src
 import (
 	"log"
 	"os"
+	"os/exec"
+	"syscall"
 )
 
 func Run(args ...string) {
@@ -10,7 +12,7 @@ func Run(args ...string) {
 	containerID := genRandID()
 	defer clean_up(containerID)
 	log.Printf("New container ID: %s\n", containerID)
-	
+
 	imageHash := initImage(args[0])
 	log.Printf("Image to start: %s\n", imageHash)
 
@@ -32,9 +34,54 @@ func Run(args ...string) {
 	must_ok(executeChildCMD(imageHash, containerID, cmdArgs...))
 }
 
-func clean_up(containerID string) {
-	log.Println("Clean up...")
-	_ = unmountContainerFs(containerID)
-	_ = os.RemoveAll(getHomeOfContainers())
-	log.Println("All temporary container files are removed")
+func Child(args ...string) {
+	imageHash, containerID := args[0], args[1]
+	executeContainer(imageHash, containerID, args[2:]...)
+}
+
+func executeChildCMD(imageHash, containerID string, args ...string) error {
+	args = append([]string{"child", imageHash, containerID}, args...)
+	cmd := exec.Cmd{
+		Path:   "/proc/self/exe",
+		Args:   append([]string{"/proc/self/exe"}, args...),
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		SysProcAttr: &syscall.SysProcAttr{
+			Cloneflags: syscall.CLONE_NEWPID |
+				syscall.CLONE_NEWNS |
+				syscall.CLONE_NEWUTS |
+				syscall.CLONE_NEWIPC,
+		},
+	}
+	return cmd.Run()
+}
+
+/*
+executeContainer will finally execute the container start command after some initialazition
+*/
+func executeContainer(imageHash, containerID string, args ...string) {
+	conf := readContainerConfig(imageHash)
+	mnt := getMountPathOfContainer(containerID)
+
+	cmd := exec.Cmd{
+		Path:   args[0],
+		Args:   args[1:],
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Env:    conf.Config.Env,
+	}
+
+	syscall.Sethostname([]byte(containerID))
+	syscall.Chroot(mnt)
+	syscall.Chdir("/")
+	must_ok(createDirs([]string{"/proc", "/sys"}))
+	must_ok(syscall.Mount("proc", "/proc", "proc", 0, ""))
+	must_ok(syscall.Mount("sysfs", "/sys", "sysfs", 0, ""))
+
+	cmd.Run()
+
+	must_ok(syscall.Unmount("/sys", 0))
+	must_ok(syscall.Unmount("/proc", 0))
 }
