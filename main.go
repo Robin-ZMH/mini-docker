@@ -1,7 +1,7 @@
 package main
 
 import (
-	"docker-mini/src"
+	"mini-docker/src"
 	"fmt"
 	"log"
 	"math/rand"
@@ -10,6 +10,10 @@ import (
 )
 
 func main() {
+	if os.Geteuid() != 0 {
+		log.Fatal("You need root privileges to run this program.")
+	}
+	
 	log.Printf("Cmd args: %v\n", os.Args)
 
 	rand.Seed(time.Now().Unix())

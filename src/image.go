@@ -33,7 +33,7 @@ func initImage(input_img string) string {
 	if imageHash, ok := getimageHash(image, tag); ok {
 		return imageHash
 	} else {
-		log.Printf("Downloading metadata for %s:%s, please wait...", image, tag)
+		log.Printf("Image doesn't exist, downloading remote image for %s:%s...", image, tag)
 		imageHash := downloadImage(strings.Join([]string{image, tag}, ":"))
 		return imageHash
 	}

@@ -1,4 +1,4 @@
-module docker-mini
+module mini-docker
 
 go 1.19
 
